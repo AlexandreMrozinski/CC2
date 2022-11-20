@@ -1,7 +1,8 @@
 ---
-title: "Untitled"
-output: html_document
+title: "Test Zone"
+output: github_document
 date: "2022-11-20"
+author: Mrozinski Alexandre
 ---
 
 ```{r setup, include=FALSE}

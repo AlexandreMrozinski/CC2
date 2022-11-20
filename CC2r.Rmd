@@ -1,6 +1,7 @@
 ---
 title: "CC2 Rade De Brest"
 output: github_document
+author: Mrozinski Alexandre
 ---
 
 ```{r}
