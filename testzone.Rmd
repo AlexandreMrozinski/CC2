@@ -1,0 +1,28 @@
+---
+title: "Untitled"
+output: html_document
+date: "2022-11-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+samples.out <- rownames(seqtab.nochim)
+subject <- sapply(strsplit(samples.out, "D"), `[`, 1)
+
+fond <- sapply(strsplit(samples.out, "Fond"), `[`, 1)
+
+surface <- substr(seqtab.nochim,1,9999) 
+median <- substr(seqtab.nochim,1,9999)
+fond <- substr(seqtab.nochim,1,9999)
+
+#fond <- as.integer(sapply(strsplit(samples.out, "Fond"), `[`, 1))
+
+
+tableau <- data.frame(Station = subject, Surface = surface, Median = median, Fond = fond)
+
+print(tableau)
+```
+

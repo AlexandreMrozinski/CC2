@@ -161,7 +161,7 @@ taxa.print <- taxa
 rownames(taxa.print) <- NULL
 head(taxa.print)
 ```
-
+#Test supp taxo
 ```{bash}
 wget http://www2.decipher.codes/Classification/TrainingSets/SILVA_SSU_r138_2019.RData
 ```
@@ -181,6 +181,10 @@ taxid <- t(sapply(ids, function(x) {
 colnames(taxid) <- ranks; rownames(taxid) <- getSequences(seqtab.nochim)
 ```
 
+```{r}
+print(taxid)
+```
+
 
 #Handoff to phyloseq
 ```{r}
@@ -191,21 +195,29 @@ theme_set(theme_bw())
 samples.out <- rownames(seqtab.nochim)
 
 subject <- sapply(strsplit(samples.out, "D"), `[`, 1)
-gender <- substr(subject,1,1)
-subject <- substr(subject,2,999)
+
+gender <- substr(seqtab.nochim,1,1)
+subject <- substr(seqtab.nochim,2,999)
+
 day <- as.integer(sapply(strsplit(samples.out, "D"), `[`, 2))
 
 samdf <- data.frame(Subject=subject, Gender=gender, Day=day)
+
 samdf$When <- "Early"
 samdf$When[samdf$Day>100] <- "Late"
 rownames(samdf) <- samples.out
+
+
+print(samdf)
+
 ```
+
 
 ```{r}
 ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
                sample_data(samdf), 
                tax_table(taxa))
-ps <- prune_samples(sample_names(ps) != "Mock", ps) # Remove mock sample
+ps <- prune_samples(sample_names(ps), ps) 
 ```
 
 ```{r}
@@ -217,7 +229,7 @@ ps
 ```
 
 ```{r}
-plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="When")
+plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="Where")
 ```
 
 
@@ -228,14 +240,14 @@ ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 ```
 
 ```{r}
-plot_ordination(ps.prop, ord.nmds.bray, color="When", title="Bray NMDS")
+plot_ordination(ps.prop, ord.nmds.bray, color="Where", title="Bray NMDS")
 ```
 
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
-plot_bar(ps.top20, x="Day", fill="Family") + facet_wrap(~When, scales="free_x")
+plot_bar(ps.top20, x="Fond", fill="Family") + facet_wrap(~Where, scales="free_x")
 ```
 
 
