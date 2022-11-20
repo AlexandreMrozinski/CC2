@@ -2,6 +2,7 @@
 title: "CC2 Rade De Brest"
 output: github_document
 author: Mrozinski Alexandre
+token: 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
 ---
 
 ```{r}
