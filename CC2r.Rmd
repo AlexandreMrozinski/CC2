@@ -4,10 +4,13 @@ output: github_document
 author: Mrozinski Alexandre
 token: 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
 ---
-
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
+knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
+```
 
+
+```{r library, include=FALSE}
+library(knitr)
 library(phyloseq)
 library(dada2)
 library(DECIPHER)
@@ -38,62 +41,46 @@ library(phyloseqGraphTest)
 library(Biostrings)
 ```
 
-```{bash, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=FALSE)
-
+```{bash, eval=FALSE}
 wget pagesperso.univ-brest.fr/~maignien/teaching/M1-MFA/UE-Ecogenomique2/EcoG2_data_cc2.tar.gz
 tar xzvf EcoG2_data_cc2.tar.gz
 ```
 
-```{bash, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=FALSE)
-
+```{bash, eval=FALSE}
 mkdir data
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=FALSE)
-
+```{r}
 path <- "data"
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 list.files(path)
 ```
 
-
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 fnFs <- sort(list.files(path, pattern="_R1", full.names = TRUE))
 fnRs <- sort(list.files(path, pattern="_R2", full.names = TRUE))
 
 sample.names <- sapply(strsplit(basename(fnFs), "_R"), `[`, 1)
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
+```{r}
 plotQualityProfile(fnRs[1:2])
 plotQualityProfile(fnFs[1:2])
 ```
 
 #Filter and trim
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
 filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
 names(filtFs) <- sample.names
 names(filtRs) <- sample.names
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,190),
               maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
               compress=TRUE, multithread=TRUE)
@@ -102,93 +89,70 @@ head(out)
 
 #Learn the Error Rates
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 errFs <- learnErrors(filtFs, multithread=TRUE)
 errRs <- learnErrors(filtRs, multithread=TRUE)
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 plotErrors(errFs, nominalQ=TRUE)
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 plotErrors(errRs, nominalQ=TRUE)
 ```
 
 #Sample Inference
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 dadaFs <- dada(filtFs, err=errFs, multithread=TRUE)
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 dadaRs <- dada(filtRs, err=errRs, multithread=TRUE)
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 dadaFs[[1]]
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 dadaRs[[1]]
 ```
 
 #Merge paired reads
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
 
 head(mergers[[1]])
 ```
 
 #Construct sequence table
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
+```{r}
 seqtab <- makeSequenceTable(mergers)
 dim(seqtab)
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 table(nchar(getSequences(seqtab)))
 ```
 
 #Remove chimeras
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
+```{r}
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 dim(seqtab.nochim)
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 sum(seqtab.nochim)/sum(seqtab)
 ```
 
 #Track reads through the pipeline
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
+```{r}
 getN <- function(x) sum(getUniques(x))
 track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
 
@@ -198,78 +162,44 @@ head(track)
 ```
 
 #Assign taxonomy
-```{bash, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=FALSE)
+
+```{bash, include=TRUE, eval=FALSE}
+
 wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz?download=1
 ```
-```{bash, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
+
+```{bash, include=FALSE, eval=FALSE}
 #test taxo 2
 wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_wSpecies_train_set.fa.gz?download=1
 ```
-```{bash, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
-#test taxo 3
-wget https://zenodo.org/record/4587955/files/silva_species_assignment_v138.1.fa.gz?download=1
-```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 taxa <- assignTaxonomy(seqtab.nochim, "silva_nr99_v138.1_train_set.fa.gz?download=1", multithread=TRUE)
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 taxa.print <- taxa 
 rownames(taxa.print) <- NULL
 head(taxa.print)
 ```
 
-
-```{r, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
-
-#test taxo 2
+```{r test taxo 2}
 taxa2 <- assignTaxonomy(seqtab.nochim, "silva_nr99_v138.1_wSpecies_train_set.fa.gz?download=1", multithread=TRUE)
 ```
 
-```{r, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
-
-#test taxo 2
+```{r test taxo 2}
 taxa2.print <- taxa2 
 rownames(taxa2.print) <- NULL
 head(taxa2.print)
 ```
 
-```{r, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
-
-#test taxo 3 fonctionne pas pk?
-taxa3 <- assignTaxonomy(seqtab.nochim, "silva_species_assignment_v138.1.fa.gz?download=1", multithread=TRUE)
-```
-
-```{r, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
-
-#test taxo 3
-taxa3.print <- taxa3 
-rownames(taxa3.print) <- NULL
-head(taxa3.print)
-```
-
 #Test supp taxo
-```{bash, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=FALSE)
 
+```{bash, eval=FALSE}
 wget http://www2.decipher.codes/Classification/TrainingSets/SILVA_SSU_r138_2019.RData
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 dna <- DNAStringSet(getSequences(seqtab.nochim)) 
 load("SILVA_SSU_r138_2019.RData") 
 ids <- IdTaxa(dna, trainingSet, strand="top", processors=NULL, verbose=FALSE) 
@@ -285,49 +215,39 @@ colnames(taxid) <- ranks; rownames(taxid) <- getSequences(seqtab.nochim)
 print(taxid)
 ```
 
-
 #Handoff to phyloseq
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
+```{r}
 theme_set(theme_bw())
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 samples.out <- rownames(seqtab.nochim)
+station <- sapply(strsplit(samples.out, "_"), `[`, 2)
 
-subject <- sapply(strsplit(samples.out, "D"), `[`, 1)
 
-gender <- substr(seqtab.nochim,1,1)
-subject <- substr(seqtab.nochim,2,999)
+fond <- as.integer(sapply(strsplit(samples.out, "_"), `[`, 2))
+median <- as.integer(sapply(strsplit(samples.out, "_"), `[`, 2))
+surface <- as.integer(sapply(strsplit(samples.out, "_"), `[`, 2))
 
-day <- as.integer(sapply(strsplit(samples.out, "D"), `[`, 2))
-
-samdf <- data.frame(Subject=subject, Gender=gender, Day=day)
+samdf <- data.frame(Station=station, Surface=surface, Median=median, Fond=fond)
 
 samdf$When <- "Early"
-samdf$When[samdf$Day>100] <- "Late"
+samdf$When[samdf$Station>999999] <- "Late"
+
 rownames(samdf) <- samples.out
-
-
 print(samdf)
-
 ```
 
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
                sample_data(samdf), 
                tax_table(taxa))
 ps <- prune_samples(sample_names(ps), ps) 
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
+```{r}
 
 dna <- Biostrings::DNAStringSet(taxa_names(ps))
 names(dna) <- taxa_names(ps)
@@ -336,34 +256,23 @@ taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
 ps
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
+```{r}
 
-plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="Where")
+plot_richness(ps, x="Station", measures=c("Shannon", "Simpson"), color="When")
 ```
 
-
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
-plot_ordination(ps.prop, ord.nmds.bray, color="Where", title="Bray NMDS")
+```{r}
+plot_ordination(ps.prop, ord.nmds.bray, color="When", title="Bray NMDS")
 ```
 
-```{r, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
-
+```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
-plot_bar(ps.top20, x="Fond", fill="Family") + facet_wrap(~Where, scales="free_x")
+plot_bar(ps.top20, x="Station", fill="Family") + facet_wrap(~When, scales="free_x")
 ```
-
-
-
