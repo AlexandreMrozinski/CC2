@@ -2,11 +2,12 @@
 title: "CC2 Rade De Brest"
 output: github_document
 author: Mrozinski Alexandre
-token: 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
+token: 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
 ---
 
-```{r setup, include=TRUE}
-knitr::opts_chunk$set(echo=TRUE, eval=FALSE)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
+
 library(phyloseq)
 library(dada2)
 library(DECIPHER)
@@ -37,33 +38,33 @@ library(phyloseqGraphTest)
 library(Biostrings)
 ```
 
-```{bash}
+```{bash, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=FALSE)
 
 wget pagesperso.univ-brest.fr/~maignien/teaching/M1-MFA/UE-Ecogenomique2/EcoG2_data_cc2.tar.gz
 tar xzvf EcoG2_data_cc2.tar.gz
 ```
 
-```{bash}
+```{bash, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=FALSE)
 
 mkdir data
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=FALSE)
 
 path <- "data"
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 list.files(path)
 ```
 
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 fnFs <- sort(list.files(path, pattern="_R1", full.names = TRUE))
@@ -72,7 +73,7 @@ fnRs <- sort(list.files(path, pattern="_R2", full.names = TRUE))
 sample.names <- sapply(strsplit(basename(fnFs), "_R"), `[`, 1)
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 plotQualityProfile(fnRs[1:2])
@@ -81,7 +82,7 @@ plotQualityProfile(fnFs[1:2])
 
 #Filter and trim
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
@@ -90,7 +91,7 @@ names(filtFs) <- sample.names
 names(filtRs) <- sample.names
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,190),
@@ -101,20 +102,20 @@ head(out)
 
 #Learn the Error Rates
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 errFs <- learnErrors(filtFs, multithread=TRUE)
 errRs <- learnErrors(filtRs, multithread=TRUE)
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 plotErrors(errFs, nominalQ=TRUE)
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 plotErrors(errRs, nominalQ=TRUE)
@@ -122,25 +123,25 @@ plotErrors(errRs, nominalQ=TRUE)
 
 #Sample Inference
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 dadaFs <- dada(filtFs, err=errFs, multithread=TRUE)
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 dadaRs <- dada(filtRs, err=errRs, multithread=TRUE)
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 dadaFs[[1]]
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 dadaRs[[1]]
@@ -148,7 +149,7 @@ dadaRs[[1]]
 
 #Merge paired reads
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
@@ -157,35 +158,35 @@ head(mergers[[1]])
 ```
 
 #Construct sequence table
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 seqtab <- makeSequenceTable(mergers)
 dim(seqtab)
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 table(nchar(getSequences(seqtab)))
 ```
 
 #Remove chimeras
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
 dim(seqtab.nochim)
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 sum(seqtab.nochim)/sum(seqtab)
 ```
 
 #Track reads through the pipeline
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 getN <- function(x) sum(getUniques(x))
@@ -197,28 +198,28 @@ head(track)
 ```
 
 #Assign taxonomy
-```{bash}
+```{bash, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=FALSE)
 wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz?download=1
 ```
-```{bash}
+```{bash, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
 #test taxo 2
 wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_wSpecies_train_set.fa.gz?download=1
 ```
-```{bash}
+```{bash, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
 #test taxo 3
 wget https://zenodo.org/record/4587955/files/silva_species_assignment_v138.1.fa.gz?download=1
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 taxa <- assignTaxonomy(seqtab.nochim, "silva_nr99_v138.1_train_set.fa.gz?download=1", multithread=TRUE)
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 taxa.print <- taxa 
@@ -227,14 +228,14 @@ head(taxa.print)
 ```
 
 
-```{r}
+```{r, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
 
 #test taxo 2
 taxa2 <- assignTaxonomy(seqtab.nochim, "silva_nr99_v138.1_wSpecies_train_set.fa.gz?download=1", multithread=TRUE)
 ```
 
-```{r}
+```{r, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
 
 #test taxo 2
@@ -243,14 +244,14 @@ rownames(taxa2.print) <- NULL
 head(taxa2.print)
 ```
 
-```{r}
+```{r, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
 
 #test taxo 3 fonctionne pas pk?
 taxa3 <- assignTaxonomy(seqtab.nochim, "silva_species_assignment_v138.1.fa.gz?download=1", multithread=TRUE)
 ```
 
-```{r}
+```{r, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, eval=FALSE)
 
 #test taxo 3
@@ -260,13 +261,13 @@ head(taxa3.print)
 ```
 
 #Test supp taxo
-```{bash}
+```{bash, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=FALSE)
 
 wget http://www2.decipher.codes/Classification/TrainingSets/SILVA_SSU_r138_2019.RData
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 dna <- DNAStringSet(getSequences(seqtab.nochim)) 
@@ -286,13 +287,13 @@ print(taxid)
 
 
 #Handoff to phyloseq
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 theme_set(theme_bw())
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 samples.out <- rownames(seqtab.nochim)
@@ -316,7 +317,7 @@ print(samdf)
 ```
 
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
@@ -325,7 +326,7 @@ ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE),
 ps <- prune_samples(sample_names(ps), ps) 
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 dna <- Biostrings::DNAStringSet(taxa_names(ps))
@@ -335,27 +336,27 @@ taxa_names(ps) <- paste0("ASV", seq(ntaxa(ps)))
 ps
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="Where")
 ```
 
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 plot_ordination(ps.prop, ord.nmds.bray, color="Where", title="Bray NMDS")
 ```
 
-```{r}
+```{r, include=TRUE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
