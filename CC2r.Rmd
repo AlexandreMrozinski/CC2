@@ -183,7 +183,7 @@ rownames(taxa.print) <- NULL
 head(taxa.print)
 ```
 
-```{r test taxo 2}
+```{r test taxo 2 assign}
 taxa2 <- assignTaxonomy(seqtab.nochim, "silva_nr99_v138.1_wSpecies_train_set.fa.gz?download=1", multithread=TRUE)
 ```
 
