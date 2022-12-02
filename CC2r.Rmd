@@ -224,15 +224,14 @@ theme_set(theme_bw())
 samples.out <- rownames(seqtab.nochim)
 station <- sapply(strsplit(samples.out, "_"), `[`, 2)
 
+profondeur <- substr(station,1,1)
+day <- as.character(sapply(strsplit(samples.out, "_"), `[`, 3))
 
-fond <- as.integer(sapply(strsplit(samples.out, "_"), `[`, 2))
-median <- as.integer(sapply(strsplit(samples.out, "_"), `[`, 2))
-surface <- as.integer(sapply(strsplit(samples.out, "_"), `[`, 2))
 
-samdf <- data.frame(Station=station, Surface=surface, Median=median, Fond=fond)
+samdf <- data.frame(Profondeur=profondeur, Day=day)
 
-samdf$When <- "Early"
-samdf$When[samdf$Station>999999] <- "Late"
+samdf$Saison <- "Ete"
+samdf$Saison[samdf$Day > "10sept14"] <- "Hiver"
 
 rownames(samdf) <- samples.out
 print(samdf)
@@ -256,8 +255,7 @@ ps
 ```
 
 ```{r}
-
-plot_richness(ps, x="Station", measures=c("Shannon", "Simpson"), color="When")
+plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="Profondeur")
 ```
 
 ```{r, include=FALSE}
@@ -266,12 +264,19 @@ ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 ```
 
 ```{r}
-plot_ordination(ps.prop, ord.nmds.bray, color="When", title="Bray NMDS")
+plot_ordination(ps.prop, ord.nmds.bray, color="Profondeur", title="Bray NMDS")
 ```
 
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
-plot_bar(ps.top20, x="Station", fill="Family") + facet_wrap(~When, scales="free_x")
+plot_bar(ps.top20, x="Day", fill="Genus") + facet_wrap(~Saison, scales="free_x")
+```
+
+```{r}
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+plot_bar(ps.top20, x="Day", fill="Profondeur") + facet_wrap(~Saison, scales="free_x")
 ```
