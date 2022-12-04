@@ -8,10 +8,6 @@ author: Mrozinski Alexandre
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 ```
 
-```{r}
-install.packages('rmarkdown')
-```
-
 ```{r library, include=FALSE}
 library(knitr)
 library(phyloseq)
