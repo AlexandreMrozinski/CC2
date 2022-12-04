@@ -1,13 +1,16 @@
 ---
 title: "CC2 Rade De Brest"
-output: github_document
+output: pdf_document
 author: Mrozinski Alexandre
-token: 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
 ---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 ```
 
+```{r}
+install.packages('rmarkdown')
+```
 
 ```{r library, include=FALSE}
 library(knitr)
@@ -48,6 +51,12 @@ tar xzvf EcoG2_data_cc2.tar.gz
 
 ```{bash, eval=FALSE}
 mkdir data
+mv St_Stratif_11mars15/Station* data2
+mv St_Stratif_10sept14/Station* data2
+
+rm -d St_Stratif_11mars15 
+rm -d St_Stratif_10sept14 
+rm EcoG2_data_cc2.tar.gz
 ```
 
 ```{r}
@@ -65,7 +74,6 @@ fnRs <- sort(list.files(path, pattern="_R2", full.names = TRUE))
 sample.names <- sapply(strsplit(basename(fnFs), "_R"), `[`, 1)
 ```
 
-
 ```{r}
 plotQualityProfile(fnRs[1:2])
 plotQualityProfile(fnFs[1:2])
@@ -81,7 +89,7 @@ names(filtRs) <- sample.names
 ```
 
 ```{r}
-out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,190),
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,240), trimLeft=c(18,18),
               maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
               compress=TRUE, multithread=TRUE)
 head(out)
@@ -164,13 +172,7 @@ head(track)
 #Assign taxonomy
 
 ```{bash, include=TRUE, eval=FALSE}
-
 wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz?download=1
-```
-
-```{bash, include=FALSE, eval=FALSE}
-#test taxo 2
-wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_wSpecies_train_set.fa.gz?download=1
 ```
 
 ```{r}
@@ -181,6 +183,11 @@ taxa <- assignTaxonomy(seqtab.nochim, "silva_nr99_v138.1_train_set.fa.gz?downloa
 taxa.print <- taxa 
 rownames(taxa.print) <- NULL
 head(taxa.print)
+```
+##Test taxa 2 
+```{bash, eval=FALSE}
+#test taxo 2
+wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_wSpecies_train_set.fa.gz?download=1
 ```
 
 ```{r test taxo 2 assign}
@@ -193,7 +200,7 @@ rownames(taxa2.print) <- NULL
 head(taxa2.print)
 ```
 
-#Test supp taxo
+##Test supp taxo
 
 ```{bash, eval=FALSE}
 wget http://www2.decipher.codes/Classification/TrainingSets/SILVA_SSU_r138_2019.RData
@@ -228,7 +235,7 @@ profondeur <- substr(station,1,1)
 day <- as.character(sapply(strsplit(samples.out, "_"), `[`, 3))
 
 
-samdf <- data.frame(Profondeur=profondeur, Day=day)
+samdf <- data.frame(Profondeur=profondeur, Mois=day)
 
 samdf$Saison <- "Ete"
 samdf$Saison[samdf$Day > "10sept14"] <- "Hiver"
@@ -246,7 +253,6 @@ ps <- prune_samples(sample_names(ps), ps)
 ```
 
 ```{r}
-
 dna <- Biostrings::DNAStringSet(taxa_names(ps))
 names(dna) <- taxa_names(ps)
 ps <- merge_phyloseq(ps, dna)
@@ -255,7 +261,7 @@ ps
 ```
 
 ```{r}
-plot_richness(ps, x="Day", measures=c("Shannon", "Simpson"), color="Profondeur")
+plot_richness(ps, x="Mois", measures=c("Shannon", "Simpson"), color="Saison")
 ```
 
 ```{r, include=FALSE}
@@ -264,14 +270,14 @@ ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 ```
 
 ```{r}
-plot_ordination(ps.prop, ord.nmds.bray, color="Profondeur", title="Bray NMDS")
+plot_ordination(ps.prop, ord.nmds.bray, color="Mois", title="Bray NMDS")
 ```
 
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
-plot_bar(ps.top20, x="Day", fill="Genus") + facet_wrap(~Saison, scales="free_x")
+plot_bar(ps.top20, x="Day", fill="Class") + facet_wrap(~Saison, scales="free_x")
 ```
 
 ```{r}
@@ -280,3 +286,5 @@ ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="Day", fill="Profondeur") + facet_wrap(~Saison, scales="free_x")
 ```
+Question: 
+Comment les communautées sont impactées par la profondeur et la période d'échantillobnage ? 
