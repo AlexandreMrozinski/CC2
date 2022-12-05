@@ -4,11 +4,12 @@ output: pdf_document
 author: Mrozinski Alexandre
 ---
 
-```{r setup, include=FALSE}
+```{r setup, eval=FALSE}
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 ```
 
-```{r library, include=FALSE}
+```{r library, eval=FALSE}
+library(rmarkdown)
 library(knitr)
 library(phyloseq)
 library(dada2)
@@ -47,8 +48,8 @@ tar xzvf EcoG2_data_cc2.tar.gz
 
 ```{bash, eval=FALSE}
 mkdir data
-mv St_Stratif_11mars15/Station* data2
-mv St_Stratif_10sept14/Station* data2
+mv St_Stratif_11mars15/Station* data
+mv St_Stratif_10sept14/Station* data
 
 rm -d St_Stratif_11mars15 
 rm -d St_Stratif_10sept14 
@@ -75,7 +76,7 @@ plotQualityProfile(fnRs[1:2])
 plotQualityProfile(fnFs[1:2])
 ```
 
-#Filter and trim
+# Filter and trim
 
 ```{r}
 filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
@@ -91,7 +92,7 @@ out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,240), trimLeft=c
 head(out)
 ```
 
-#Learn the Error Rates
+# Learn the Error Rates
 
 ```{r}
 errFs <- learnErrors(filtFs, multithread=TRUE)
@@ -106,7 +107,7 @@ plotErrors(errFs, nominalQ=TRUE)
 plotErrors(errRs, nominalQ=TRUE)
 ```
 
-#Sample Inference
+# Sample Inference
 
 ```{r}
 dadaFs <- dada(filtFs, err=errFs, multithread=TRUE)
@@ -124,7 +125,7 @@ dadaFs[[1]]
 dadaRs[[1]]
 ```
 
-#Merge paired reads
+# Merge paired reads
 
 ```{r}
 mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
@@ -132,7 +133,7 @@ mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
 head(mergers[[1]])
 ```
 
-#Construct sequence table
+# Construct sequence table
 
 ```{r}
 seqtab <- makeSequenceTable(mergers)
@@ -143,7 +144,7 @@ dim(seqtab)
 table(nchar(getSequences(seqtab)))
 ```
 
-#Remove chimeras
+# Remove chimeras
 
 ```{r}
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
@@ -154,7 +155,7 @@ dim(seqtab.nochim)
 sum(seqtab.nochim)/sum(seqtab)
 ```
 
-#Track reads through the pipeline
+# Track reads through the pipeline
 
 ```{r}
 getN <- function(x) sum(getUniques(x))
@@ -165,7 +166,7 @@ rownames(track) <- sample.names
 head(track)
 ```
 
-#Assign taxonomy
+# Assign taxonomy
 
 ```{bash, include=TRUE, eval=FALSE}
 wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz?download=1
@@ -180,7 +181,9 @@ taxa.print <- taxa
 rownames(taxa.print) <- NULL
 head(taxa.print)
 ```
-##Test taxa 2 
+
+## Test taxa 2
+
 ```{bash, eval=FALSE}
 #test taxo 2
 wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_wSpecies_train_set.fa.gz?download=1
@@ -196,7 +199,7 @@ rownames(taxa2.print) <- NULL
 head(taxa2.print)
 ```
 
-##Test supp taxo
+## Test supp taxo
 
 ```{bash, eval=FALSE}
 wget http://www2.decipher.codes/Classification/TrainingSets/SILVA_SSU_r138_2019.RData
@@ -217,7 +220,7 @@ taxid <- t(sapply(ids, function(x) {
 colnames(taxid) <- ranks; rownames(taxid) <- getSequences(seqtab.nochim)
 ```
 
-#Handoff to phyloseq
+# Handoff to phyloseq
 
 ```{r}
 theme_set(theme_bw())
@@ -225,27 +228,24 @@ theme_set(theme_bw())
 
 ```{r}
 samples.out <- rownames(seqtab.nochim)
-station <- sapply(strsplit(samples.out, "_"), `[`, 2)
+prof <- sapply(strsplit(samples.out, "_"), `[`, 2)
 
-profondeur <- substr(station,1,1)
+s_prof <- substr(prof,1,1)
 day <- as.character(sapply(strsplit(samples.out, "_"), `[`, 3))
 
+samdf <- data.frame(prof=s_prof, Day=day)
 
-samdf <- data.frame(Profondeur=profondeur, Mois=day)
 
-samdf$Saison <- "Ete"
-samdf$Saison[samdf$Day > "10sept14"] <- "Hiver"
+samdf$Mois <- "Septembre"
+samdf$Mois[samdf$Day > "10sept14"] <- "Mars"
 
 rownames(samdf) <- samples.out
-print(samdf)
 ```
-
 
 ```{r}
 ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
                sample_data(samdf), 
                tax_table(taxa))
-ps <- prune_samples(sample_names(ps), ps) 
 ```
 
 ```{r}
@@ -257,7 +257,7 @@ ps
 ```
 
 ```{r}
-plot_richness(ps, x="Mois", measures=c("Shannon", "Simpson"), color="Saison")
+plot_richness(ps, x="Mois", measures=c("Shannon", "Simpson"), color="prof")
 ```
 
 ```{r, include=FALSE}
@@ -273,14 +273,14 @@ plot_ordination(ps.prop, ord.nmds.bray, color="Mois", title="Bray NMDS")
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
-plot_bar(ps.top20, x="Day", fill="Class") + facet_wrap(~Saison, scales="free_x")
+plot_bar(ps.top20, x="Day", fill="Class") + facet_wrap(~Mois, scales="free_x")
 ```
 
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
-plot_bar(ps.top20, x="Day", fill="Profondeur") + facet_wrap(~Saison, scales="free_x")
+plot_bar(ps.top20, x="prof", fill="Class") + facet_wrap(~Mois, scales="free_x")
 ```
-Question: 
-Comment les communautées sont impactées par la profondeur et la période d'échantillobnage ? 
+
+### Question: Comment les communautées sont impactées par la profondeur et la période d'échantillobnage ?
