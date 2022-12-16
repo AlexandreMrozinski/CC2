@@ -1,6 +1,6 @@
 ---
 title: "CC2 Rade De Brest"
-output: pdf_document
+output: github_document
 author: Mrozinski Alexandre
 ---
 
@@ -8,7 +8,7 @@ author: Mrozinski Alexandre
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 ```
 
-```{r library, eval=FALSE}
+```{r library, include=FALSE}
 library(rmarkdown)
 library(knitr)
 library(phyloseq)
@@ -39,6 +39,9 @@ library(genefilter)
 library(impute)
 library(phyloseqGraphTest)
 library(Biostrings)
+library(RSQLite)
+library(parallel)
+library(ape)
 ```
 
 ```{bash, eval=FALSE}
@@ -86,11 +89,12 @@ names(filtRs) <- sample.names
 ```
 
 ```{r}
-out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,240), trimLeft=c(18,18),
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(245,230), trimLeft=c(18,18),
               maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
               compress=TRUE, multithread=TRUE)
 head(out)
 ```
+### Amorces de 18pb, nécessité de garder 430 pb minimum pour l'analyse. Nous avons ici 439 restantes, en retirant les amorces (18) et en coupant a 245 pour R1, et 230 pour R2. 
 
 # Learn the Error Rates
 
@@ -228,18 +232,19 @@ theme_set(theme_bw())
 
 ```{r}
 samples.out <- rownames(seqtab.nochim)
-prof <- sapply(strsplit(samples.out, "_"), `[`, 2)
+Profondeur <- sapply(strsplit(samples.out, "_"), `[`, 2)
 
-s_prof <- substr(prof,1,1)
+s_prof <- substr(Profondeur,1,1)
 day <- as.character(sapply(strsplit(samples.out, "_"), `[`, 3))
 
-samdf <- data.frame(prof=s_prof, Day=day)
+samdf <- data.frame(Profondeur=s_prof, Jour=day)
 
 
 samdf$Mois <- "Septembre"
-samdf$Mois[samdf$Day > "10sept14"] <- "Mars"
+samdf$Mois[samdf$Jour > "10sept14"] <- "Mars"
 
 rownames(samdf) <- samples.out
+print(samdf)
 ```
 
 ```{r}
@@ -257,30 +262,69 @@ ps
 ```
 
 ```{r}
-plot_richness(ps, x="Mois", measures=c("Shannon", "Simpson"), color="prof")
+plot_richness(ps, x="Mois", measures=c("Shannon", "Simpson"), color="Profondeur")
 ```
 
 ```{r, include=FALSE}
 ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
-ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
+ord.nmds.bray <- ordinate(ps.prop, method="PCoA", distance="bray")
 ```
 
 ```{r}
-plot_ordination(ps.prop, ord.nmds.bray, color="Mois", title="Bray NMDS")
+plot_ordination(ps.prop, ord.nmds.bray, color="Profondeur", title="Bray NMDS", shape="Jour")
+```
+```{r, include=FALSE}
+ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.nmds.bray2 <- ordinate(ps.prop, method="PCoA", distance="jaccard")
+```
+
+```{r}
+plot_ordination(ps.prop2, ord.nmds.bray2, color="Profondeur", title="Bray NMDS", shape="Jour")
+```
+
+
+```{r}
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+plot_bar(ps.top20, x="Jour", fill="Class") + facet_wrap(~Mois, scales="free_x")
 ```
 
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
-plot_bar(ps.top20, x="Day", fill="Class") + facet_wrap(~Mois, scales="free_x")
+plot_bar(ps.top20, x="Profondeur", fill="Class") + facet_wrap(~Mois, scales="free_x")
 ```
-
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
-plot_bar(ps.top20, x="prof", fill="Class") + facet_wrap(~Mois, scales="free_x")
+plot_bar(ps.top20, x="Mois", fill="Class") + facet_wrap(~Profondeur, scales="free_x")
 ```
+### Question: Comment les communautées sont impactées par la profondeur et la période d'échantillonage ?
 
-### Question: Comment les communautées sont impactées par la profondeur et la période d'échantillobnage ?
+# Les ordinations nous montrent que les ASV de Mars (=Hiver) sont regroupés entre eux, peu importe la profondeur. Les ASV de Septembre (=été) sont quant à eux un peu plus éloigné. Ceci est du au gradient de température, en été certaines espèces vont aller profiter des eux chaudes en surface et en median, ce que nous retrouvons sur nos ordinations. Et en hiver, tous restent dans le fond, ou l'inertie thermique est la meilleure, ou il y a le moins de variation.
+
+# Les histogrammes nous montrent qu'il y a une plus forte abondance de tous les genres en été par rapport a l'hiver.
+# Glabalement les Cyanobactéries, Alphaprotéobactéries, Acidimicrobia, Bactéroidia, Gammaprotéobactéries sont plus présent en été que en hiver.
+
+# En regardant l'impact de la profondeur on remarque,
+# On remarque que en été les Cyanobactéries ont un gradient d'abondance du fond vers la surface, en etant bien plus présent en surface, corréler avec la pénétrance de la lumière dans la couche d'eau du faite qu'elles soient photosynthétique, mais aussi a la température. En été les eaux de surfaces sont bien plus chaudes. Ceci est cohérent les Cyanobactéries étant photosynthétique elles sont dépendantes de l'ensoleillement et donc de la saison.
+# A l'inverse les Bactéroidia, on un gradient inverse et plus présent dans le fond. Cela doit etre due a la quantité de nutriment, car non photosynthétique. Nous retrouvons un gadient équivalent pour les Alphaprotéobactéries, Acidimicrobia et les Gammaprotéobactéries, pour probablement les memes raisons.
+# En hiver les abondances sont bien plus équivalente en fonction de la profondeur.
+
+# En comparant les profondeurs de chaques saisons une a une on remarque,
+# En surface, une bien plus grande abondance en septembre des Cyanobactéries et légèrement des Alphaprotéobactéries et Bactéroidia. Les Gammaprotéobactéries eux étant plus présent en Mars que en Septembre.
+# En médian nous ne pouvons pas comparer car nous n'avons pas les données du mois de Mars. 
+# Pour la couche profonde, ont remarque une net evolution de tout les genres en Septembre, cela ne doit pas être du a la température du fait de l'inertie thermique, mais plutot a la présence de nutriment. On peut supposer que ces bactéries consommes de la matière organique et notamment les cyanbactéries qui se développe plus fortement en été, qui quand elles meurent tombent dans la couche d'eau et sont consommées par ces autres bactéries.
+#Les cyanobactéries ne se développe pas plus en hiver qu'en été en zone profonde, du faite que nous devons probablement etre en zone aphotique.
+
+
+## Cette analyse de métabarcoding, nous permet donc de remarquer des variations de population en fonction de saison et de la profondeur dans la Rade De Brest. Mais aussi de déduire, des possibles chaines trophiques entre les microorganismes.
+
+
+
+
+
+
