@@ -1,6 +1,6 @@
 ---
 title: "CC2 Rade De Brest"
-output: github_document
+output: pdf_document
 author: Mrozinski Alexandre
 ---
 
@@ -8,7 +8,7 @@ author: Mrozinski Alexandre
 knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 ```
 
-#### lien du tuto: https://benjjneb.github.io/dada2/tutorial.html?fbclid=IwAR3vziKTkWiy42NAczCSy_HVOtCpRtmW28KSQxQCDGWUA500Hd2bjMGyaN8
+#### lien du tuto: <https://benjjneb.github.io/dada2/tutorial.html?fbclid=IwAR3vziKTkWiy42NAczCSy_HVOtCpRtmW28KSQxQCDGWUA500Hd2bjMGyaN8>
 
 #### Réponse a la problématique en bas du documents
 
@@ -98,7 +98,8 @@ out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(245,230), trimLeft=c
               compress=TRUE, multithread=TRUE)
 head(out)
 ```
-### Amorces de 18pb, nécessité de garder 430 pb minimum pour l'analyse. Nous avons ici 439 restantes, en retirant les amorces (18) et en coupant a 245 pour R1, et 230 pour R2. 
+
+### Amorces de 18pb, nécessité de garder 430 pb minimum pour l'analyse. Nous avons ici 439 restantes, en retirant les amorces (18) et en coupant a 245 pour R1, et 230 pour R2.
 
 # Learn the Error Rates
 
@@ -277,6 +278,7 @@ ord.nmds.bray <- ordinate(ps.prop, method="PCoA", distance="bray")
 ```{r}
 plot_ordination(ps.prop, ord.nmds.bray, color="Profondeur", title="Bray PCoA", shape="Jour")
 ```
+
 ```{r, include=FALSE}
 ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.nmds.bray2 <- ordinate(ps.prop, method="PCoA", distance="jaccard")
@@ -285,7 +287,6 @@ ord.nmds.bray2 <- ordinate(ps.prop, method="PCoA", distance="jaccard")
 ```{r}
 plot_ordination(ps.prop2, ord.nmds.bray2, color="Profondeur", title="Jaccard PCoA", shape="Jour")
 ```
-
 
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
@@ -300,48 +301,67 @@ ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="Profondeur", fill="Class") + facet_wrap(~Mois, scales="free_x")
 ```
+
 ```{r}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:20]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
 plot_bar(ps.top20, x="Mois", fill="Class") + facet_wrap(~Profondeur, scales="free_x")
 ```
+
 ## Question: Comment les communautées sont impactées par la profondeur et la période d'échantillonage ?
 
 #### L'indices de diversités Alpha nous donne la richesse spécifique des echantillons.
-#### Cette richesse spécifique, correspond a la quantité de Classes présent dans le milieu.
-#### On remarque que les echantillons de fond sont les plus riches. La surface en été a la richesse spécifique la plus faible, mais en hiver elle rejoind celle du fond. La zone médiane se place en été entre le fond et la surface et dispose d'une richesse spécifique moyenne.
+
+#### Cette richesse spécifique, correspond a la quantité de Classes présentes dans le milieu.
+
+#### On remarque que les echantillons de fond sont les plus riches. La surface en été, a la richesse spécifique la plus faible, mais en hiver elle rejoint celle du fond. La zone médiane se place en été entre le fond et la surface et dispose d'une richesse spécifique moyenne.
+
 #### Cela veut dire qu'il y a globalement un plus grand nombre d'espèces différentes dans le fond que en surface en été. Et que en hiver les deux rejoignent les valeurs du fond en hiver.
 
-#### L'indice de diversité Beta compare la diversité des espèces mais aussi leurs abondances en fonction des echantillons.
-#### Ils nous montrent que les population de Mars (= hiver) sont regroupés entre eux, peu importe la profondeur. Les populations hivernales de surface et de profondeur, sont donc proches en terme de composition.
-#### Les ASV median et surface de Septembre (= été) sont regroupés, mais ceux de profondeur sont bien éloignés de ces deux derniers. Cela nous montre que la composition des populations de surface et median sont proches, mais bien différente de celle de profondeur qui se rapproche de celle de profondeur d'hiver. 
-#### Globalement nous avons une hétérogénéité en terme de composition des populations d'hiver et d'été, mais les échantillons de profondeur sont ceux qui varient le moins. Grande variation de composition en surface entre l'hiver et l'été.
+#### L'indice de diversité Beta avec l'indice de Jaccard et de Bray-Curtis comparent la diversité des espèces mais aussi leurs abondances en fonction des échantillons. Et cherche a regrouper entre eux les populations se ressemblant le plus en terme de contenance et quantité.
+
+#### Ils nous montrent que les population de Mars (= hiver) sont regroupés entre eux, peu importe la profondeur. Les populations hivernales de surface et de profondeur, sont donc proches en terme de composition. Mais en été elles se séparent totalement.
+#### Les populations de fond et de surface subissent une grande variation en fonction de la saison. Etant semblabes en hiver, mais bien différentes entres elles et par rapport à elles meme, en été.
+
+#### Les ASV median et surface de Septembre (= été), sont regroupés, mais ceux de profondeur sont bien éloignés de ces deux derniers. Cela nous montre que la composition des populations de surface et median sont proches, mais bien différente de celles de profondeur en été.
+
+#### Globalement nous avons une hétérogénéité en terme de composition des populations d'hiver et d'été. 
 
 #### Les histogrammes nous montrent qu'il y a une plus forte abondance de tous les genres en été par rapport a l'hiver. La plus forte abondance étant en profondeur en été.
+
 #### Glabalement les Cyanobactéries, Alphaprotéobactéries, Acidimicrobia, Bactéroidia, Gammaprotéobactéries sont plus présent en été que en hiver.
 
 #### En regardant l'impact de la profondeur on remarque.
+
 #### Que en été les Cyanobactéries ont un gradient d'abondance du fond vers la surface, en etant bien plus présent en surface, corréler avec la pénétrance de la lumière dans la couche d'eau du faite qu'elles soient photosynthétiques, mais aussi a la température, en été les eaux de surfaces etant bien plus chaudes. En hiver il y a une présence de cyanobactéries, mais pas de gradient et bien moindre.
-### Les Cyanobactéries sont donc dépendantes de l'ensoleillement et donc de la saison. 
+
+#### Les Cyanobactéries sont donc dépendantes de l'ensoleillement et donc de la saison.
 
 #### A l'inverse les Bactéroidia, on un gradient inverse et plus présent dans le fond. De même pour les Alphaprotéobactéries, Acidimicrobia et les Gammaprotéobactéries.
-#### En hiver les abondances sont bien plutot égale et ne varie pas tellement en fonction de la profondeur.
 
-#### En comparant les profondeurs de chaques saisons une a une on remarque.
+#### En hiver les abondances sont bien plutot égales et ne varient pas tellement en fonction de la profondeur.
+
+#### En comparant les profondeurs de chaques saisons une a une on remarque:
+
 #### En surface, une bien plus grande abondance en septembre des Cyanobactéries et légèrement des Alphaprotéobactéries et Bactéroidia. Les Gammaprotéobactéries eux étant plus présent en Mars que en Septembre.
-#### En médian nous ne pouvons pas comparer car nous n'avons pas les données du mois de Mars. 
+
+#### En médian nous ne pouvons pas comparer car nous n'avons pas les données du mois de Mars.
+
 #### Pour la couche profonde, ont remarque une net evolution de tout les genres en Septembre.
+
 #### Les cyanobactéries ne se développe pas plus en hiver qu'en été en zone profonde, du faite que nous devons probablement etre en zone aphotique.
 
 #### Nous pouvons noter une présence plus élevé de Classes inconues en profondeur.
 
 ## Conlusion
-#### Cette analyse de métabarcoding, nous permet donc de remarquer des variations de populations en fonction des saisons et de la profondeur dans la Rade De Brest. Mais aussi de déduire, des possibles chaines trophiques entre les microorganismes. 
 
-#### Les population de zone mediane et de surface semblent être composés du meme type de Classe en été, alors que celles de profondeurs sont bien éloignés. En hiver, toutes les populations sont quasiment les memes (sauf médian non echantilloné ici). Cela doit être due à la température et la lumière, qui impacte principalement la surface et la zone médiane. Les populations profondes varient légèrement, et surtout en terme de quantité du fait d'une plus grande présence de nutriment en été.
+#### Cette analyse de métabarcoding, nous permet donc de remarquer des variations de populations en fonction des saisons et de la profondeur dans la Rade De Brest. Mais aussi de déduire, des possibles chaines trophiques entre les microorganismes.
 
-#### Les cyanobactéries semblent etre le fer de lance avec la température, de ces dynamiques de populations. Etant producteur primaire, elle produisent la matière organique a la base de la chaine trophique. Consommées par les eucaryotes, dont les déjections/cadavres sont consommés et utilisé par le reste de la chaine alimentaire pour arriver au final aux bactéries. Les cyanobactéries serait la raison d'une moindre diversité alpha en été, du faite qu'elles dominent totalement le milieu et part leurs quantitée. 
+#### Les populations de zone mediane et de surface semblent être composés du meme type de Classe en été, alors que celles de profondeurs sont bien éloignés. En hiver, toutes les populations sont quasiment les memes (sauf médian non échantilloné ici). Cela doit être du à la température et la lumière, qui impacte principalement la surface et la zone médiane. Les populations profondes varient légèrement, et surtout en terme de quantité du fait d'une plus grande présence de nutriment en été.
+
+#### Les cyanobactéries semblent etre le fer de lance avec la température, de ces dynamiques de populations. Etant producteur primaire, elle produisent la matière organique a la base de la chaine trophique. Consommées par les eucaryotes, dont les déjections/cadavres sont consommés et utilisé par le reste de la chaine alimentaire pour arriver au final aux bactéries. Les cyanobactéries serait la raison d'une moindre diversité alpha en été, du faite qu'elles dominent totalement le milieu et part leurs quantitée.
+
 #### Le developpement des Cyanobactéries en surface induit une baisse de la richesse spécifique, une baisse du nombre de Classe. Cela est du a une compétition inter spécifique.
 
 #### Pour la plupart sensibles aux variations de temprérature, la présence des bactéries non photosynthétiques dans les couches profondes est logique, profitant de l'inertie thermique de cette dernière, et se développant en fonction de la quantité de nutriment disponible, et donc des saisons. Ces influences de paramètres abiotiques influent directement sur la richesse spécifique, qui ne varie que très peu en fonction des saisons, du faite d'aucune espèce dominante comme peuvent l'être les Cyanobactéries en surface en été. Neanmoins la présence de Cyanobactéries influence l'abondance de ces espèces profondes en été.
