@@ -1,6 +1,6 @@
 ---
 title: "CC2 Rade De Brest"
-output: pdf_document
+output: github_document
 author: Mrozinski Alexandre
 ---
 
@@ -12,7 +12,10 @@ knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 #### Réponse a la problématique en bas du documents
 
+#### Library dispo dans .Rmd
+
 ```{r library, include=FALSE}
+library(tinytex)
 library(rmarkdown)
 library(knitr)
 library(phyloseq)
@@ -177,7 +180,7 @@ head(track)
 
 # Assign taxonomy
 
-```{bash, include=TRUE, eval=FALSE}
+```{bash, eval=FALSE}
 wget https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz?download=1
 ```
 
@@ -270,7 +273,7 @@ ps
 plot_richness(ps, x="Mois", measures=c("Shannon", "Simpson"), color="Profondeur")
 ```
 
-```{r, include=FALSE}
+```{r}
 ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.nmds.bray <- ordinate(ps.prop, method="PCoA", distance="bray")
 ```
@@ -279,7 +282,7 @@ ord.nmds.bray <- ordinate(ps.prop, method="PCoA", distance="bray")
 plot_ordination(ps.prop, ord.nmds.bray, color="Profondeur", title="Bray PCoA", shape="Jour")
 ```
 
-```{r, include=FALSE}
+```{r}
 ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
 ord.nmds.bray2 <- ordinate(ps.prop, method="PCoA", distance="jaccard")
 ```

@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo=TRUE, eval=TRUE)
 
 #### Réponse a la problématique en bas du documents
 
+#### Library dispo dans .Rmd
+
 ``` bash
 wget pagesperso.univ-brest.fr/~maignien/teaching/M1-MFA/UE-Ecogenomique2/EcoG2_data_cc2.tar.gz
 tar xzvf EcoG2_data_cc2.tar.gz
@@ -430,10 +432,20 @@ plot_richness(ps, x="Mois", measures=c("Shannon", "Simpson"), color="Profondeur"
 ![](CC2r_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
 
 ``` r
+ps.prop <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.nmds.bray <- ordinate(ps.prop, method="PCoA", distance="bray")
+```
+
+``` r
 plot_ordination(ps.prop, ord.nmds.bray, color="Profondeur", title="Bray PCoA", shape="Jour")
 ```
 
 ![](CC2r_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
+``` r
+ps.prop2 <- transform_sample_counts(ps, function(otu) otu/sum(otu))
+ord.nmds.bray2 <- ordinate(ps.prop, method="PCoA", distance="jaccard")
+```
 
 ``` r
 plot_ordination(ps.prop2, ord.nmds.bray2, color="Profondeur", title="Jaccard PCoA", shape="Jour")
@@ -478,13 +490,13 @@ plot_bar(ps.top20, x="Mois", fill="Class") + facet_wrap(~Profondeur, scales="fre
 
 #### Cela veut dire qu’il y a globalement un plus grand nombre d’espèces différentes dans le fond que en surface en été. Et que en hiver les deux rejoignent les valeurs du fond en hiver.
 
-#### L’indice de diversité Beta avec l’indice de Jaccard et de Bray-Curtis comparent la diversité des espèces mais aussi leurs abondances en fonction des échantillons. Et cherche a regrouper entre eux les populations se ressemblant le plus en terme de contenance et quantité;
+#### L’indice de diversité Beta avec l’indice de Jaccard et de Bray-Curtis comparent la diversité des espèces mais aussi leurs abondances en fonction des échantillons. Et cherche a regrouper entre eux les populations se ressemblant le plus en terme de contenance et quantité.
 
 #### Ils nous montrent que les population de Mars (= hiver) sont regroupés entre eux, peu importe la profondeur. Les populations hivernales de surface et de profondeur, sont donc proches en terme de composition. Mais en été elles se séparent totalement.
 
-#### Les populations de fond et de surface subissent une grande variation en fonction de la saison. Se séparant en été, et se regroupant en hiver.
+#### Les populations de fond et de surface subissent une grande variation en fonction de la saison. Etant semblabes en hiver, mais bien différentes entres elles et par rapport à elles meme, en été.
 
-#### Les ASV median et surface de Septembre (= été), sont regroupés, mais ceux de profondeur sont bien éloignés de ces deux derniers. Cela nous montre que la composition des populations de surface et median sont proches, mais bien différente de celles de profondeur.
+#### Les ASV median et surface de Septembre (= été), sont regroupés, mais ceux de profondeur sont bien éloignés de ces deux derniers. Cela nous montre que la composition des populations de surface et median sont proches, mais bien différente de celles de profondeur en été.
 
 #### Globalement nous avons une hétérogénéité en terme de composition des populations d’hiver et d’été.
 
@@ -500,7 +512,7 @@ plot_bar(ps.top20, x="Mois", fill="Class") + facet_wrap(~Profondeur, scales="fre
 
 #### A l’inverse les Bactéroidia, on un gradient inverse et plus présent dans le fond. De même pour les Alphaprotéobactéries, Acidimicrobia et les Gammaprotéobactéries.
 
-#### En hiver les abondances sont bien plutot égale et ne varie pas tellement en fonction de la profondeur.
+#### En hiver les abondances sont bien plutot égales et ne varient pas tellement en fonction de la profondeur.
 
 #### En comparant les profondeurs de chaques saisons une a une on remarque:
 
